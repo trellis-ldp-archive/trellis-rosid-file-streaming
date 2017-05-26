@@ -15,14 +15,13 @@ package org.trellisldp.rosid.file.streaming;
 
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.io.IOException;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Properties;
 
 import org.apache.beam.sdk.PipelineResult;
-import org.trellisldp.rosid.file.FileProcessingPipeline;
-
 import org.slf4j.Logger;
+import org.trellisldp.rosid.file.FileProcessingPipeline;
 
 /**
  * @author acoburn
