@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming.png?branch=master)](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming)
 
-A Beam-based resource processing application suitable for various distributed backends.
+A <a href="https://beam.apache.org">Beam</a>-based resource processing application suitable for various distributed backends.
 
 ## Building
 
@@ -10,7 +10,7 @@ This code requires Java 8 and can be built with Gradle:
 
     ./gradlew build
 
-To build this for particular backends, use the `-P` flag to specify `spark`, `flink`, `apex` or `google`. The default is the `direct` runner.
+To build this application for a particular backend, use the `-P` flag to specify `spark`, `flink`, `apex` or `google`. The default is the `direct` runner.
 
 ## Running
 
