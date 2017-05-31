@@ -21,7 +21,6 @@ import java.util.Properties;
 
 import org.apache.beam.sdk.PipelineResult;
 import org.slf4j.Logger;
-import org.trellisldp.rosid.file.FileProcessingPipeline;
 
 /**
  * @author acoburn
