@@ -20,15 +20,15 @@ import static org.trellisldp.rosid.file.FileUtils.resourceDirectory;
 import java.io.File;
 import java.util.Map;
 
-import org.apache.beam.sdk.io.kafka.KafkaRecord;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.values.KV;
 import org.slf4j.Logger;
 import org.trellisldp.rosid.file.CachedResource;
 
 /**
  * @author acoburn
  */
-public class CacheWriter extends DoFn<KafkaRecord<String, String>, KafkaRecord<String, String>> {
+public class CacheWriter extends DoFn<KV<String, String>, KV<String, String>> {
 
     private static final Logger LOGGER = getLogger(CacheWriter.class);
 
@@ -49,10 +49,13 @@ public class CacheWriter extends DoFn<KafkaRecord<String, String>, KafkaRecord<S
      */
     @ProcessElement
     public void processElement(final ProcessContext c) {
-        final String key = c.element().getKV().getKey();
+        final KV<String, String> element = c.element();
+        final String key = element.getKey();
         final File dir = resourceDirectory(config, key);
         if (!isNull(dir)) {
-            if (!CachedResource.write(dir, key)) {
+            if (CachedResource.write(dir, key)) {
+                c.output(element);
+            } else {
                 LOGGER.error("Error writing cached resource for {}", key);
             }
         } else {
