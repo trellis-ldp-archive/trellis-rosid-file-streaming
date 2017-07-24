@@ -16,9 +16,9 @@ package org.trellisldp.rosid.file.streaming;
 import static java.lang.Long.parseLong;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE_AGGREGATE;
+import static org.trellisldp.rosid.common.RosidConstants.TOPIC_EVENT;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_INBOUND_ADD;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_INBOUND_DELETE;
-import static org.trellisldp.rosid.common.RosidConstants.TOPIC_INTERNAL_NOTIFICATION;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_ADD;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_DELETE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_ADD;
@@ -146,12 +146,12 @@ public class FileProcessingPipeline {
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_CACHE).withoutMetadata())
             .apply(ParDo.of(new CacheWriter(config)))
+            .apply(ParDo.of(new EventProcessor()))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_INTERNAL_NOTIFICATION));
+                    .withTopic(TOPIC_EVENT));
 
         return p;
     }
-
 }
