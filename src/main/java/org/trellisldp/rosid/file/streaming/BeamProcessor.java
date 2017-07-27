@@ -17,21 +17,18 @@ import static java.time.Instant.now;
 import static java.util.Objects.isNull;
 import static java.util.Optional.of;
 import static java.util.stream.Stream.empty;
-import static org.apache.jena.riot.Lang.NQUADS;
-import static org.apache.jena.riot.RDFDataMgr.read;
-import static org.apache.jena.sparql.core.DatasetGraphFactory.create;
 import static org.slf4j.LoggerFactory.getLogger;
+import static org.trellisldp.rosid.common.RDFUtils.deserialize;
 import static org.trellisldp.rosid.file.FileUtils.resourceDirectory;
+import static org.trellisldp.spi.RDFUtils.getInstance;
 
 import java.io.File;
-import java.io.StringReader;
 import java.util.Map;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.apache.commons.rdf.api.Dataset;
-import org.apache.commons.rdf.jena.JenaRDF;
-import org.apache.jena.sparql.core.DatasetGraph;
+import org.apache.commons.rdf.api.RDF;
 import org.slf4j.Logger;
 import org.trellisldp.rosid.file.VersionedResource;
 
@@ -40,15 +37,9 @@ import org.trellisldp.rosid.file.VersionedResource;
  */
 class BeamProcessor extends DoFn<KV<String, String>, KV<String, String>> {
 
-    private static final JenaRDF rdf = new JenaRDF();
+    private static final RDF rdf = getInstance();
 
     private static final Logger LOGGER = getLogger(BeamProcessor.class);
-
-    private static Dataset deserialize(final String data) {
-        final DatasetGraph dataset = create();
-        read(dataset, new StringReader(data), null, NQUADS);
-        return rdf.asDataset(dataset);
-    }
 
     private final Map<String, String> config;
     private final Boolean add;
