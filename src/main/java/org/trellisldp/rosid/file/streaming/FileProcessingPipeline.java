@@ -14,6 +14,7 @@
 package org.trellisldp.rosid.file.streaming;
 
 import static java.lang.Long.parseLong;
+import static java.util.stream.Collectors.toMap;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE_AGGREGATE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_EVENT;
@@ -23,8 +24,6 @@ import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_A
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_DELETE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_ADD;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_DELETE;
-import static org.trellisldp.rosid.file.FileUtils.getPropertySection;
-import static org.trellisldp.rosid.file.FileUtils.getStorageConfig;
 
 import java.util.Map;
 import java.util.Properties;
@@ -52,8 +51,7 @@ import org.trellisldp.vocabulary.LDP;
  */
 public class FileProcessingPipeline {
 
-    private static final String STORAGE_PREFIX = "trellis.storage.";
-    private static final String KAFKA_PREFIX = "kafka.";
+    private static final String STORAGE_PREFIX = "trellis.partitions.";
 
     private final Map<String, String> config;
     private final String bootstrapServers;
@@ -64,8 +62,9 @@ public class FileProcessingPipeline {
      * @param configuration the configuration
      */
     public FileProcessingPipeline(final Properties configuration) {
-        this.config = getStorageConfig(getPropertySection(configuration, STORAGE_PREFIX), ".resources");
-        this.bootstrapServers = configuration.getProperty(KAFKA_PREFIX + "bootstrapServers");
+        this.config = configuration.stringPropertyNames().stream().filter(k -> k.startsWith(STORAGE_PREFIX))
+            .collect(toMap(k -> k.substring(STORAGE_PREFIX.length()), configuration::getProperty));
+        this.bootstrapServers = configuration.getProperty("kafka.bootstrapServers");
         this.cacheSeconds = parseLong(configuration.getProperty("trellis.cache.seconds", "5"));
     }
 
