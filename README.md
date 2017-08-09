@@ -1,6 +1,7 @@
 # trellis-rosid-file-streaming
 
 [![Build Status](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming.png?branch=master)](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming)
+[![Build status](https://ci.appveyor.com/api/projects/status/89bpi6s7kmky9ev8?svg=true)](https://ci.appveyor.com/project/acoburn/trellis-rosid-file-streaming)
 
 A <a href="https://beam.apache.org">Beam</a>-based resource processing application suitable for various distributed backends.
 
