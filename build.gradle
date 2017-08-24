@@ -8,6 +8,7 @@ plugins {
 
 apply plugin: 'maven'
 apply plugin: 'java'
+apply plugin: 'osgi'
 apply plugin: 'application'
 apply plugin: 'maven-publish'
 apply plugin: 'signing'
@@ -105,6 +106,19 @@ artifacts {
     archives javadocJar
     archives sourceJar
     archives shadowJar
+}
+
+jar {
+    manifest {
+        description project.description
+        docURL project.docURL
+        vendor project.vendor
+        license project.license
+
+        instruction 'Automatic-Module-Name', 'org.trellisldp.rosid.file.streaming'
+        instruction 'Import-Package', '*'
+        instruction 'Export-Package', "org.trellisldp.rosid.file.streaming;version=${projectOsgiVersion}"
+    }
 }
 
 jacoco {
