@@ -41,7 +41,7 @@ public final class StreamPipeline {
             final FileProcessingPipeline p = new FileProcessingPipeline(config);
             LOGGER.info("Starting stream processor");
             final PipelineResult res = p.getPipeline().run();
-            LOGGER.info("Pipeline state: {}", res.getState().toString());
+            LOGGER.info("Pipeline state: {}", res.getState());
             res.waitUntilFinish();
         } else {
             LOGGER.error("No configuration file provided!");

@@ -41,7 +41,9 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
 
     private static Dataset deserialize(final String data) {
         final DatasetGraph dataset = create();
-        read(dataset, new StringReader(data), null, NQUADS);
+        try (final StringReader reader = new StringReader(data)) {
+            read(dataset, reader, null, NQUADS);
+        }
         return rdf.asDataset(dataset);
     }
 
