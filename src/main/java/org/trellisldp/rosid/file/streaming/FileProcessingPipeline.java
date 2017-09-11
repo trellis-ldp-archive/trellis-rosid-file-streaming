@@ -18,8 +18,6 @@ import static java.util.stream.Collectors.toMap;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE_AGGREGATE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_EVENT;
-import static org.trellisldp.rosid.common.RosidConstants.TOPIC_INBOUND_ADD;
-import static org.trellisldp.rosid.common.RosidConstants.TOPIC_INBOUND_DELETE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_ADD;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_DELETE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_ADD;
@@ -43,7 +41,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import org.joda.time.Duration;
 
-import org.trellisldp.vocabulary.Fedora;
 import org.trellisldp.vocabulary.LDP;
 
 /**
@@ -76,18 +73,6 @@ public class FileProcessingPipeline {
 
         final PipelineOptions options = PipelineOptionsFactory.create();
         final Pipeline p = Pipeline.create(options);
-
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_INBOUND_ADD).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, Fedora.PreferInboundReferences.getIRIString(), true)));
-
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_INBOUND_DELETE).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, Fedora.PreferInboundReferences.getIRIString(), false)));
 
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
