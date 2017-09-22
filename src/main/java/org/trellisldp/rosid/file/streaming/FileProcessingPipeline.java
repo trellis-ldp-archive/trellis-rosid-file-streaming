@@ -32,6 +32,7 @@ import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.apache.beam.sdk.transforms.Combine;
 import org.apache.beam.sdk.transforms.ParDo;
+import org.apache.beam.sdk.transforms.windowing.AfterProcessingTime;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.Window;
 import org.apache.beam.sdk.values.KV;
@@ -118,7 +119,10 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
-            .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(cacheSeconds))))
+            .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(cacheSeconds)))
+                    .triggering(AfterProcessingTime.pastFirstElementInPane()
+                            .plusDelayOf(Duration.standardSeconds(cacheSeconds)))
+                    .discardingFiredPanes().withAllowedLateness(Duration.ZERO))
             .apply(Combine.perKey(x -> x.iterator().next()))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)

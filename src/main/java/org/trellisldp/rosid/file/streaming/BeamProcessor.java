@@ -67,6 +67,7 @@ class BeamProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         final KV<String, String> element = c.element();
         final File dir = resourceDirectory(config, element.getKey());
         if (!isNull(dir)) {
+            LOGGER.debug("Writing {} to directory: {}", graph, dir);
             final Dataset dataset = deserialize(element.getValue());
             if (VersionedResource.write(dir,
                         add ? empty() : dataset.stream(of(rdf.createIRI(graph)), null, null, null),
