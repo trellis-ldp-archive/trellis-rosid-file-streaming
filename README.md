@@ -22,9 +22,15 @@ To run the code, use this command:
 where `./config.properties` is a file such as:
 
 ```
-trellis.storage.<partition1-name>.ldprs = /path/to/partition1/data/objects
-trellis.storage.<partition2-name>.ldprs = /path/to/partition2/data/objects
-trellis.storage.<partition3-name>.ldprs = /path/to/partition3/data/objects
+# The Kafka cluster
 kafka.bootstrapServers = host:port
+
+# The Trellis data locations
+trellis.partition.<partition1-name> = /path/to/partition1/data/objects
+trellis.partition.<partition2-name> = /path/to/partition2/data/objects
+trellis.partition.<partition3-name> = /path/to/partition3/data/objects
+
+# A time in seconds to aggregate cache writes
+trellis.aggregateSeconds = 4
 ```
 

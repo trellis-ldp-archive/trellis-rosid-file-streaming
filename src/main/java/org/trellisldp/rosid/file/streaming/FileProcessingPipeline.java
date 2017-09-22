@@ -53,7 +53,7 @@ public class FileProcessingPipeline {
 
     private final Map<String, String> config;
     private final String bootstrapServers;
-    private final long cacheSeconds;
+    private final long aggregateSeconds;
 
     /**
      * Build a file processing pipeline
@@ -63,7 +63,7 @@ public class FileProcessingPipeline {
         this.config = configuration.stringPropertyNames().stream().filter(k -> k.startsWith(STORAGE_PREFIX))
             .collect(toMap(k -> k.substring(STORAGE_PREFIX.length()), configuration::getProperty));
         this.bootstrapServers = configuration.getProperty("kafka.bootstrapServers");
-        this.cacheSeconds = parseLong(configuration.getProperty("trellis.cache.seconds", "5"));
+        this.aggregateSeconds = parseLong(configuration.getProperty("trellis.aggregateSeconds", "1"));
     }
 
     /**
@@ -75,6 +75,7 @@ public class FileProcessingPipeline {
         final PipelineOptions options = PipelineOptionsFactory.create();
         final Pipeline p = Pipeline.create(options);
 
+        // Add membership triples
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
@@ -85,6 +86,7 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE));
 
+        // Delete membership triples
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
@@ -95,6 +97,7 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE));
 
+        // Add containment triples
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
@@ -105,6 +108,7 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE));
 
+        // Delete containment triples
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
@@ -115,13 +119,14 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE));
 
+        // Aggregate cache writes
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
-            .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(cacheSeconds)))
+            .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(aggregateSeconds)))
                     .triggering(AfterProcessingTime.pastFirstElementInPane()
-                            .plusDelayOf(Duration.standardSeconds(cacheSeconds)))
+                            .plusDelayOf(Duration.standardSeconds(aggregateSeconds)))
                     .discardingFiredPanes().withAllowedLateness(Duration.ZERO))
             .apply(Combine.perKey(x -> x.iterator().next()))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
@@ -129,6 +134,7 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE));
 
+        // Write to cache and dispatch to the event bus
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
