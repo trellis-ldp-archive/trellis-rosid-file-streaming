@@ -19,8 +19,10 @@ import static org.apache.jena.riot.RDFDataMgr.read;
 import static org.apache.jena.sparql.core.DatasetGraphFactory.create;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.spi.EventService.serialize;
+import static org.trellisldp.spi.RDFUtils.toExternalTerm;
 
 import java.io.StringReader;
+import java.util.Map;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -47,11 +49,14 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         return rdf.asDataset(dataset);
     }
 
+    private final Map<String, String> baseUrls;
+
     /**
      * A beam processor that handles raw NQUAD graphs
      */
-    public EventProcessor() {
+    public EventProcessor(final Map<String, String> baseUrls) {
         super();
+        this.baseUrls = baseUrls;
     }
 
     /**
@@ -62,7 +67,10 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
     public void processElement(final ProcessContext c) {
         final KV<String, String> element = c.element();
         final Dataset data = deserialize(element.getValue());
-        final Notification notification = new Notification(element.getKey(), data);
+        final String baseUrl = baseUrls.getOrDefault(element.getKey().split(":", 2)[1].split("/")[0],
+                "http://example.com/");
+        final String identifier = toExternalTerm(rdf.createIRI(element.getKey()), baseUrl).getIRIString();
+        final Notification notification = new Notification(identifier, data);
         LOGGER.debug("Serializing notification for {}", element.getKey());
         serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
     }

@@ -49,9 +49,12 @@ import org.trellisldp.vocabulary.LDP;
  */
 public class FileProcessingPipeline {
 
-    private static final String STORAGE_PREFIX = "trellis.partitions.";
+    private static final String PARTITION_PREFIX = "trellis.partitions.";
+    private static final String DATA_SUFFIX = ".data";
+    private static final String BASE_URL_SUFFIX = ".baseUrl";
 
-    private final Map<String, String> config;
+    private final Map<String, String> dataConfiguration;
+    private final Map<String, String> baseUrlConfiguration;
     private final String bootstrapServers;
     private final long aggregateSeconds;
 
@@ -60,10 +63,20 @@ public class FileProcessingPipeline {
      * @param configuration the configuration
      */
     public FileProcessingPipeline(final Properties configuration) {
-        this.config = configuration.stringPropertyNames().stream().filter(k -> k.startsWith(STORAGE_PREFIX))
-            .collect(toMap(k -> k.substring(STORAGE_PREFIX.length()), configuration::getProperty));
         this.bootstrapServers = configuration.getProperty("kafka.bootstrapServers");
         this.aggregateSeconds = parseLong(configuration.getProperty("trellis.aggregateSeconds", "1"));
+        this.dataConfiguration = configuration.stringPropertyNames().stream()
+            .filter(k -> k.startsWith(PARTITION_PREFIX) && k.endsWith(DATA_SUFFIX))
+            .collect(toMap(k -> k.substring(PARTITION_PREFIX.length(), k.length() - DATA_SUFFIX.length()),
+                        configuration::getProperty));
+        this.baseUrlConfiguration = configuration.stringPropertyNames().stream()
+            .filter(k -> k.startsWith(PARTITION_PREFIX) && k.endsWith(BASE_URL_SUFFIX))
+            .collect(toMap(k -> k.substring(PARTITION_PREFIX.length(), k.length() - BASE_URL_SUFFIX.length()),
+                        configuration::getProperty));
+
+        if (!this.dataConfiguration.keySet().equals(this.baseUrlConfiguration.keySet())) {
+            throw new IllegalArgumentException("Data and BaseUrl values are missing for some partitions!");
+        }
     }
 
     /**
@@ -80,7 +93,7 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_LDP_MEMBERSHIP_ADD).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, LDP.PreferMembership.getIRIString(), true)))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), true)))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
@@ -91,7 +104,7 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_LDP_MEMBERSHIP_DELETE).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, LDP.PreferMembership.getIRIString(), false)))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), false)))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
@@ -102,7 +115,7 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_LDP_CONTAINMENT_ADD).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, LDP.PreferContainment.getIRIString(), true)))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
@@ -113,7 +126,7 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_LDP_CONTAINMENT_DELETE).withoutMetadata())
-            .apply(ParDo.of(new BeamProcessor(config, LDP.PreferContainment.getIRIString(), false)))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), false)))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
@@ -139,8 +152,8 @@ public class FileProcessingPipeline {
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_CACHE).withoutMetadata())
-            .apply(ParDo.of(new CacheWriter(config)))
-            .apply(ParDo.of(new EventProcessor()))
+            .apply(ParDo.of(new CacheWriter(dataConfiguration)))
+            .apply(ParDo.of(new EventProcessor(baseUrlConfiguration)))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
