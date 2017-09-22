@@ -53,7 +53,7 @@ public class CacheWriter extends DoFn<KV<String, String>, KV<String, String>> {
         final String key = element.getKey();
         final File dir = resourceDirectory(config, key);
         if (!isNull(dir)) {
-	    LOGGER.debug("Writing cache for: {}", key);
+            LOGGER.debug("Writing cache for: {}", key);
             if (CachedResource.write(dir, key)) {
                 c.output(element);
             } else {
