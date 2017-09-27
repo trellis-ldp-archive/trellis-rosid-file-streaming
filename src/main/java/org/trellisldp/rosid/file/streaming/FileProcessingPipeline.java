@@ -132,20 +132,32 @@ public class FileProcessingPipeline {
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE));
 
-        // Aggregate cache writes
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
+        if (aggregateSeconds > 0) {
+            // Aggregate cache writes
+            p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
+                        .withKeyDeserializer(StringDeserializer.class)
+                        .withValueDeserializer(StringDeserializer.class)
+                        .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
+                .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(aggregateSeconds)))
+                        .triggering(AfterProcessingTime.pastFirstElementInPane()
+                                .plusDelayOf(Duration.standardSeconds(aggregateSeconds)))
+                        .discardingFiredPanes().withAllowedLateness(Duration.ZERO))
+                .apply(Combine.perKey(x -> x.iterator().next()))
+                .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
+                        .withKeySerializer(StringSerializer.class)
+                        .withValueSerializer(StringSerializer.class)
+                        .withTopic(TOPIC_CACHE));
+        } else {
+            // Skip aggregation
+            p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
                     .withKeyDeserializer(StringDeserializer.class)
                     .withValueDeserializer(StringDeserializer.class)
                     .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
-            .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(aggregateSeconds)))
-                    .triggering(AfterProcessingTime.pastFirstElementInPane()
-                            .plusDelayOf(Duration.standardSeconds(aggregateSeconds)))
-                    .discardingFiredPanes().withAllowedLateness(Duration.ZERO))
-            .apply(Combine.perKey(x -> x.iterator().next()))
             .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
                     .withKeySerializer(StringSerializer.class)
                     .withValueSerializer(StringSerializer.class)
                     .withTopic(TOPIC_CACHE));
+        }
 
         // Write to cache and dispatch to the event bus
         p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
