@@ -68,15 +68,18 @@ class BeamProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         final File dir = resourceDirectory(config, element.getKey());
         if (!isNull(dir)) {
             LOGGER.debug("Writing {} to directory: {}", graph, dir);
-            final Dataset dataset = deserialize(element.getValue());
-            if (VersionedResource.write(dir,
-                        add ? empty() : dataset.stream(of(rdf.createIRI(graph)), null, null, null),
-                        add ? dataset.stream(of(rdf.createIRI(graph)), null, null, null) : empty(), now())) {
-                c.output(c.element());
-            } else if (add) {
-                LOGGER.error("Error adding {} quads to {}", graph, element.getKey());
-            } else {
-                LOGGER.error("Error removing {} quads from {}", graph, element.getKey());
+            try (final Dataset dataset = deserialize(element.getValue())) {
+                if (VersionedResource.write(dir,
+                            add ? empty() : dataset.stream(of(rdf.createIRI(graph)), null, null, null),
+                            add ? dataset.stream(of(rdf.createIRI(graph)), null, null, null) : empty(), now())) {
+                    c.output(c.element());
+                } else if (add) {
+                    LOGGER.error("Error adding {} quads to {}", graph, element.getKey());
+                } else {
+                    LOGGER.error("Error removing {} quads from {}", graph, element.getKey());
+                }
+            } catch (final Exception ex) {
+                LOGGER.error("Error processing graph: {}", ex.getMessage());
             }
         } else {
             LOGGER.error("Unable to write {} quads to {}", graph, element.getKey());
