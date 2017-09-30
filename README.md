@@ -17,7 +17,7 @@ To build this application for a particular backend, use the `-P` flag to specify
 
 To run the code, use this command:
 
-    java -jar ./build/libs/trellis-processing.jar config.properties
+    java -jar ./build/libs/trellis-processing.jar config.properties --defaultWorkerLogLevel=WARN --workerLogLevelOverrides={"org.trellisldp":"INFO"}
 
 where `./config.properties` is a file such as:
 
