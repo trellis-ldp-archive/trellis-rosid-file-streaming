@@ -18,11 +18,11 @@ import static org.apache.jena.riot.Lang.NQUADS;
 import static org.apache.jena.riot.RDFDataMgr.read;
 import static org.apache.jena.sparql.core.DatasetGraphFactory.create;
 import static org.slf4j.LoggerFactory.getLogger;
-import static org.trellisldp.spi.EventService.serialize;
-import static org.trellisldp.spi.RDFUtils.toExternalTerm;
+import static org.trellisldp.api.RDFUtils.TRELLIS_PREFIX;
 
 import java.io.StringReader;
 import java.util.Map;
+import java.util.ServiceLoader;
 
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
@@ -30,6 +30,7 @@ import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.jena.JenaRDF;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.slf4j.Logger;
+import org.trellisldp.api.ActivityStreamService;
 import org.trellisldp.rosid.common.Notification;
 
 /**
@@ -40,6 +41,9 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
     private static final JenaRDF rdf = new JenaRDF();
 
     private static final Logger LOGGER = getLogger(EventProcessor.class);
+
+    // TODO - JDK9 ServiceLoader::findFirst
+    private static ActivityStreamService service = ServiceLoader.load(ActivityStreamService.class).iterator().next();
 
     private static Dataset deserialize(final String data) {
         final DatasetGraph dataset = create();
@@ -69,9 +73,16 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         final Dataset data = deserialize(element.getValue());
         final String baseUrl = baseUrls.getOrDefault(element.getKey().split(":", 2)[1].split("/")[0],
                 "http://example.com/");
-        final String identifier = toExternalTerm(rdf.createIRI(element.getKey()), baseUrl).getIRIString();
+        final String identifier = toExternalTerm(element.getKey(), baseUrl);
         final Notification notification = new Notification(identifier, data);
         LOGGER.debug("Serializing notification for {}", element.getKey());
-        serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
+        service.serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
+    }
+
+    private String toExternalTerm(final String term, final String baseUrl) {
+        if (term.startsWith(TRELLIS_PREFIX)) {
+            return baseUrl + term.substring(TRELLIS_PREFIX.length());
+        }
+        return term;
     }
 }

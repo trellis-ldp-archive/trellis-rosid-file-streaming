@@ -20,7 +20,7 @@ import static java.util.stream.Stream.empty;
 import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.rosid.common.RDFUtils.deserialize;
 import static org.trellisldp.rosid.file.FileUtils.resourceDirectory;
-import static org.trellisldp.spi.RDFUtils.getInstance;
+import static org.trellisldp.api.RDFUtils.getInstance;
 
 import java.io.File;
 import java.util.Map;
