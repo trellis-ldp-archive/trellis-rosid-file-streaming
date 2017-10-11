@@ -175,4 +175,46 @@ public class BeamProcessorTest {
         pipeline.run();
         root.setWritable(true);
     }
+
+    @Test
+    @Category(NeedsRunner.class)
+    public void testInvalidDirectoryPipeline() throws Exception {
+
+        final String dataset = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferContainment> .";
+        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+
+        final Map<String, String> dataConfiguration = singletonMap("foo",
+                getClass().getResource("/dataDirectory").toURI().toString());
+
+        final PCollection<KV<String, String>> pCollection = pipeline
+            .apply("Create", Create.of(kv))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)));
+
+        PAssert.that(pCollection).empty();
+
+        pipeline.run();
+    }
+
+    @Test
+    @Category(NeedsRunner.class)
+    public void testInvalidDataPipeline() throws Exception {
+
+        final String dataset = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferConta";
+        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+
+        final Map<String, String> dataConfiguration = singletonMap("repository",
+                getClass().getResource("/dataDirectory").toURI().toString());
+
+        final PCollection<KV<String, String>> pCollection = pipeline
+            .apply("Create", Create.of(kv))
+            .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), false)));
+
+        PAssert.that(pCollection).empty();
+
+        pipeline.run();
+    }
 }
