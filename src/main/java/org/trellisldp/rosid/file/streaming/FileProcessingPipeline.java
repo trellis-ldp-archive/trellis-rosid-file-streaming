@@ -187,8 +187,8 @@ public class FileProcessingPipeline {
      * @throws IOException in the event of an error loading the configuration
      */
     public static Pipeline loadPipeline(final String[] args) throws IOException {
-        if (args.length >= 1) {
-            return new FileProcessingPipeline(loadProperties(args[1])).getPipeline();
+        if (args.length >= 2) {
+            return new FileProcessingPipeline(loadConfiguration(args[1])).getPipeline();
         }
         LOGGER.error("No configuration file provided");
         throw new IOException("No configuration file provided");
@@ -199,7 +199,7 @@ public class FileProcessingPipeline {
      * @param filename the configuration filename
      * @throws IOException in the event of an error loading the configuration
      */
-    public static Properties loadProperties(final String filename) throws IOException {
+    public static Properties loadConfiguration(final String filename) throws IOException {
         final Properties config = new Properties();
         try (final InputStream input = new FileInputStream(filename)) {
             config.load(input);
