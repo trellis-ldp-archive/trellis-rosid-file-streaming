@@ -81,6 +81,7 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
             final String identifier = toExternalTerm(element.getKey(), baseUrl);
             final Notification notification = new Notification(identifier, data);
             LOGGER.debug("Serializing notification for {}", element.getKey());
+            LOGGER.debug("Using baseURL: {} for {}", baseUrl, element.getKey());
             service.serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
         } else {
             LOGGER.warn("Unable to serialize notification: baseUrl or data values not present for: {}",

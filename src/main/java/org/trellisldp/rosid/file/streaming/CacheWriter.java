@@ -40,6 +40,7 @@ public class CacheWriter extends DoFn<KV<String, String>, KV<String, String>> {
      */
     public CacheWriter(final Map<String, String> config) {
         super();
+        LOGGER.debug("Building CacheWriter with configuration: {}", config);
         this.config = config;
     }
 
