@@ -15,6 +15,7 @@ package org.trellisldp.rosid.file.streaming;
 
 import static java.lang.Long.parseLong;
 import static java.util.stream.Collectors.toMap;
+import static org.slf4j.LoggerFactory.getLogger;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_CACHE_AGGREGATE;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_EVENT;
@@ -23,6 +24,9 @@ import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_CONTAINMENT_D
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_ADD;
 import static org.trellisldp.rosid.common.RosidConstants.TOPIC_LDP_MEMBERSHIP_DELETE;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.FileInputStream;
 import java.util.Map;
 import java.util.Properties;
 
@@ -41,6 +45,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 import org.joda.time.Duration;
+import org.slf4j.Logger;
 
 import org.trellisldp.vocabulary.LDP;
 
@@ -48,6 +53,8 @@ import org.trellisldp.vocabulary.LDP;
  * @author acoburn
  */
 public class FileProcessingPipeline {
+
+    private static final Logger LOGGER = getLogger(FileProcessingPipeline.class);
 
     private static final String PARTITION_PREFIX = "trellis.partitions.";
     private static final String DATA_SUFFIX = ".data";
@@ -172,5 +179,31 @@ public class FileProcessingPipeline {
                     .withTopic(TOPIC_EVENT));
 
         return p;
+    }
+
+    /**
+     * Load a FileProcessingPipeline
+     * @param args the arguments
+     * @throws IOException in the event of an error loading the configuration
+     */
+    public static Pipeline loadPipeline(final String[] args) throws IOException {
+        if (args.length >= 1) {
+            return new FileProcessingPipeline(loadProperties(args[1])).getPipeline();
+        }
+        LOGGER.error("No configuration file provided");
+        throw new IOException("No configuration file provided");
+    }
+
+    /**
+     * Load the configuration for the pipeline
+     * @param filename the configuration filename
+     * @throws IOException in the event of an error loading the configuration
+     */
+    public static Properties loadProperties(final String filename) throws IOException {
+        final Properties config = new Properties();
+        try (final InputStream input = new FileInputStream(filename)) {
+            config.load(input);
+            return config;
+        }
     }
 }
