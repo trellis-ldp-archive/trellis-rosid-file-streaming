@@ -45,6 +45,9 @@ public class BeamProcessorTest {
             "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
             "<http://www.w3.org/ns/ldp#PreferContainment> .";
 
+    private final static KV<String, String> MEMBER_KV = KV.of("trellis:repository/resource", MEMBER_DATASET);
+    private final static KV<String, String> CONTAINER_KV = KV.of("trellis:repository/resource", CONTAINER_DATASET);
+
     @Rule
     public final transient TestPipeline pipeline = TestPipeline.create();
 
@@ -52,16 +55,14 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddMemberPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(MEMBER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), true)));
 
-        PAssert.that(pCollection).containsInAnyOrder(asList(kv));
+        PAssert.that(pCollection).containsInAnyOrder(asList(MEMBER_KV));
 
         pipeline.run();
     }
@@ -70,16 +71,14 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveMemberPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(MEMBER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), false)));
 
-        PAssert.that(pCollection).containsInAnyOrder(asList(kv));
+        PAssert.that(pCollection).containsInAnyOrder(asList(MEMBER_KV));
 
         pipeline.run();
     }
@@ -88,16 +87,14 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddContainerPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(CONTAINER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)));
 
-        PAssert.that(pCollection).containsInAnyOrder(asList(kv));
+        PAssert.that(pCollection).containsInAnyOrder(asList(CONTAINER_KV));
 
         pipeline.run();
     }
@@ -106,16 +103,14 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveContainerPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(CONTAINER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), false)));
 
-        PAssert.that(pCollection).containsInAnyOrder(asList(kv));
+        PAssert.that(pCollection).containsInAnyOrder(asList(CONTAINER_KV));
 
         pipeline.run();
     }
@@ -123,8 +118,6 @@ public class BeamProcessorTest {
     @Test
     @Category(NeedsRunner.class)
     public void testUnwritableRemoveContainerPipeline() throws Exception {
-
-        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory2").toURI().toString());
@@ -134,7 +127,7 @@ public class BeamProcessorTest {
         assumeTrue(root.setReadOnly());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(CONTAINER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), false)));
 
         PAssert.that(pCollection).empty();
@@ -147,8 +140,6 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testUnwritableAddContainerPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory2").toURI().toString());
 
@@ -157,7 +148,7 @@ public class BeamProcessorTest {
         assumeTrue(root.setReadOnly());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(CONTAINER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)));
 
         PAssert.that(pCollection).empty();
@@ -170,13 +161,11 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testInvalidDirectoryPipeline() throws Exception {
 
-        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
-
         final Map<String, String> dataConfiguration = singletonMap("foo",
                 getClass().getResource("/dataDirectory").toURI().toString());
 
         final PCollection<KV<String, String>> pCollection = pipeline
-            .apply("Create", Create.of(kv))
+            .apply("Create", Create.of(CONTAINER_KV))
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)));
 
         PAssert.that(pCollection).empty();
