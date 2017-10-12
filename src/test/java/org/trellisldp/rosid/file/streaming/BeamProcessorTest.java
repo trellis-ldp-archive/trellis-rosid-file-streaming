@@ -37,6 +37,14 @@ import org.trellisldp.vocabulary.LDP;
  */
 public class BeamProcessorTest {
 
+    private final static String MEMBER_DATASET = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferMembership> .";
+
+    private final static String CONTAINER_DATASET = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferContainment> .";
+
     @Rule
     public final transient TestPipeline pipeline = TestPipeline.create();
 
@@ -44,10 +52,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddMemberPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferMembership> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
@@ -65,10 +70,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveMemberPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferMembership> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
@@ -86,10 +88,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
@@ -107,10 +106,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory").toURI().toString());
@@ -128,10 +124,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testUnwritableRemoveContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory2").toURI().toString());
@@ -154,10 +147,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testUnwritableAddContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository",
                 getClass().getResource("/dataDirectory2").toURI().toString());
@@ -180,10 +170,7 @@ public class BeamProcessorTest {
     @Category(NeedsRunner.class)
     public void testInvalidDirectoryPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("foo",
                 getClass().getResource("/dataDirectory").toURI().toString());
