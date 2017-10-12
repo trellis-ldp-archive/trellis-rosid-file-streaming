@@ -100,89 +100,59 @@ public class FileProcessingPipeline {
         final Pipeline p = Pipeline.create(options);
 
         // Add membership triples
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_LDP_MEMBERSHIP_ADD).withoutMetadata())
+        p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_LDP_MEMBERSHIP_ADD).withoutMetadata())
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), true)))
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_CACHE_AGGREGATE));
+            .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE));
 
         // Delete membership triples
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_LDP_MEMBERSHIP_DELETE).withoutMetadata())
+        p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_LDP_MEMBERSHIP_DELETE).withoutMetadata())
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferMembership.getIRIString(), false)))
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_CACHE_AGGREGATE));
+            .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE));
 
         // Add containment triples
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_LDP_CONTAINMENT_ADD).withoutMetadata())
+        p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_LDP_CONTAINMENT_ADD).withoutMetadata())
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), true)))
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_CACHE_AGGREGATE));
+            .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE));
 
         // Delete containment triples
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_LDP_CONTAINMENT_DELETE).withoutMetadata())
+        p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_LDP_CONTAINMENT_DELETE).withoutMetadata())
             .apply(ParDo.of(new BeamProcessor(dataConfiguration, LDP.PreferContainment.getIRIString(), false)))
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_CACHE_AGGREGATE));
+            .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE));
 
         if (aggregateSeconds > 0) {
             // Aggregate cache writes
-            p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                        .withKeyDeserializer(StringDeserializer.class)
-                        .withValueDeserializer(StringDeserializer.class)
-                        .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
+            p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
                 .apply(Window.<KV<String, String>>into(FixedWindows.of(Duration.standardSeconds(aggregateSeconds)))
                         .triggering(AfterProcessingTime.pastFirstElementInPane()
                                 .plusDelayOf(Duration.standardSeconds(aggregateSeconds)))
                         .discardingFiredPanes().withAllowedLateness(Duration.ZERO))
                 .apply(Combine.perKey(x -> x.iterator().next()))
-                .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                        .withKeySerializer(StringSerializer.class)
-                        .withValueSerializer(StringSerializer.class)
-                        .withTopic(TOPIC_CACHE));
+                .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE));
         } else {
             // Skip aggregation
-            p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_CACHE));
+            p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_CACHE_AGGREGATE).withoutMetadata())
+                .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_CACHE));
         }
 
         // Write to cache and dispatch to the event bus
-        p.apply(KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
-                    .withKeyDeserializer(StringDeserializer.class)
-                    .withValueDeserializer(StringDeserializer.class)
-                    .withTopic(TOPIC_CACHE).withoutMetadata())
+        p.apply(getKafkaReader(bootstrapServers).withTopic(TOPIC_CACHE).withoutMetadata())
             .apply(ParDo.of(new CacheWriter(dataConfiguration)))
             .apply(ParDo.of(new EventProcessor(baseUrlConfiguration)))
-            .apply(KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
-                    .withKeySerializer(StringSerializer.class)
-                    .withValueSerializer(StringSerializer.class)
-                    .withTopic(TOPIC_EVENT));
+            .apply(getKafkaWriter(bootstrapServers).withTopic(TOPIC_EVENT));
 
         return p;
+    }
+
+    private static KafkaIO.Read<String, String> getKafkaReader(final String bootstrapServers) {
+        return KafkaIO.<String, String>read().withBootstrapServers(bootstrapServers)
+            .withKeyDeserializer(StringDeserializer.class)
+            .withValueDeserializer(StringDeserializer.class);
+    }
+
+    private static KafkaIO.Write<String, String> getKafkaWriter(final String bootstrapServers) {
+        return KafkaIO.<String, String>write().withBootstrapServers(bootstrapServers)
+            .withKeySerializer(StringSerializer.class)
+            .withValueSerializer(StringSerializer.class);
     }
 
     /**
