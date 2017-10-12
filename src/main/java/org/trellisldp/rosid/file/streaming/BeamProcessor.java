@@ -73,16 +73,22 @@ class BeamProcessor extends DoFn<KV<String, String>, KV<String, String>> {
                             add ? empty() : dataset.stream(of(rdf.createIRI(graph)), null, null, null),
                             add ? dataset.stream(of(rdf.createIRI(graph)), null, null, null) : empty(), now())) {
                     c.output(c.element());
-                } else if (add) {
-                    LOGGER.error("Error adding {} quads to {}", graph, element.getKey());
                 } else {
-                    LOGGER.error("Error removing {} quads from {}", graph, element.getKey());
+                    logError(add, graph, element.getKey());
                 }
             } catch (final Exception ex) {
                 LOGGER.error("Error processing graph: {}", ex.getMessage());
             }
         } else {
             LOGGER.error("Unable to write {} quads to {}", graph, element.getKey());
+        }
+    }
+
+    private static void logError(final Boolean add, final String graph, final String key) {
+        if (add) {
+            LOGGER.error("Error adding {} quads to {}", graph, key);
+        } else {
+            LOGGER.error("Error removing {} quads from {}", graph, key);
         }
     }
 }
