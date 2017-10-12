@@ -34,6 +34,7 @@ ext {
 
     /* Dependencies */
     trellisRosidFileVersion = '0.1.0-SNAPSHOT'
+    trellisEventVersion = '0.1.0'
     beamVersion = '2.1.0'
     slf4jVersion = '1.7.25'
     logbackVersion = '1.2.3'
@@ -69,6 +70,8 @@ dependencies {
     } else {
         compile group: 'org.apache.beam', name: 'beam-runners-direct-java', version: beamVersion
     }
+
+    runtime group: 'org.trellisldp', name: 'trellis-event-serialization', version: trellisEventVersion
 
     testImplementation group: 'junit', name: 'junit', version: junitVersion
     testImplementation group: 'org.hamcrest', name: 'hamcrest-all', version: hamcrestVersion

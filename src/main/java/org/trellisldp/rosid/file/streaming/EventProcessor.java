@@ -13,6 +13,7 @@
  */
 package org.trellisldp.rosid.file.streaming;
 
+import static java.util.Objects.nonNull;
 import static org.apache.beam.sdk.values.KV.of;
 import static org.apache.jena.riot.Lang.NQUADS;
 import static org.apache.jena.riot.RDFDataMgr.read;
@@ -28,6 +29,7 @@ import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.values.KV;
 import org.apache.commons.rdf.api.Dataset;
 import org.apache.commons.rdf.jena.JenaRDF;
+import org.apache.jena.riot.RiotException;
 import org.apache.jena.sparql.core.DatasetGraph;
 import org.slf4j.Logger;
 import org.trellisldp.api.ActivityStreamService;
@@ -49,6 +51,9 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         final DatasetGraph dataset = create();
         try (final StringReader reader = new StringReader(data)) {
             read(dataset, reader, null, NQUADS);
+        } catch (final RiotException ex) {
+            LOGGER.error("Error reading dataset: {}", ex.getMessage());
+            return null;
         }
         return rdf.asDataset(dataset);
     }
@@ -74,9 +79,11 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         final String baseUrl = baseUrls.getOrDefault(element.getKey().split(":", 2)[1].split("/")[0],
                 "http://example.com/");
         final String identifier = toExternalTerm(element.getKey(), baseUrl);
-        final Notification notification = new Notification(identifier, data);
-        LOGGER.debug("Serializing notification for {}", element.getKey());
-        service.serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
+        if (nonNull(data)) {
+            final Notification notification = new Notification(identifier, data);
+            LOGGER.debug("Serializing notification for {}", element.getKey());
+            service.serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
+        }
     }
 
     private String toExternalTerm(final String term, final String baseUrl) {
