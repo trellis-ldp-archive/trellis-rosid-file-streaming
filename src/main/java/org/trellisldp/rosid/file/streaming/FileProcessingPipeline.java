@@ -82,6 +82,9 @@ public class FileProcessingPipeline {
                         configuration::getProperty));
 
         if (!this.dataConfiguration.keySet().equals(this.baseUrlConfiguration.keySet())) {
+            LOGGER.error("Invalid configuration values: data and baseUrl values do not align");
+            LOGGER.error("Data partitions: {}", this.dataConfiguration.keySet());
+            LOGGER.error("BaseUrl partitions: {}", this.baseUrlConfiguration.keySet());
             throw new IllegalArgumentException("Data and BaseUrl values are missing for some partitions!");
         }
     }
@@ -92,6 +95,7 @@ public class FileProcessingPipeline {
      */
     public Pipeline getPipeline() {
 
+        LOGGER.debug("Building Beam Pipeline");
         final PipelineOptions options = PipelineOptionsFactory.create();
         final Pipeline p = Pipeline.create(options);
 
@@ -188,6 +192,7 @@ public class FileProcessingPipeline {
      */
     public static Pipeline loadPipeline(final String[] args) throws IOException {
         if (args.length >= 2) {
+            LOGGER.debug("Loading Beam Pipeline with {}", args[1]);
             return new FileProcessingPipeline(loadConfiguration(args[1])).getPipeline();
         }
         LOGGER.error("No configuration file provided");
@@ -202,6 +207,7 @@ public class FileProcessingPipeline {
     public static Properties loadConfiguration(final String filename) throws IOException {
         final Properties config = new Properties();
         try (final InputStream input = new FileInputStream(filename)) {
+            LOGGER.debug("Loading configuration from {}", filename);
             config.load(input);
             return config;
         }

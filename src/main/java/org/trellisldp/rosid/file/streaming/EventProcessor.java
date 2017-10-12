@@ -76,13 +76,15 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
     public void processElement(final ProcessContext c) {
         final KV<String, String> element = c.element();
         final Dataset data = deserialize(element.getValue());
-        final String baseUrl = baseUrls.getOrDefault(element.getKey().split(":", 2)[1].split("/")[0],
-                "http://example.com/");
-        final String identifier = toExternalTerm(element.getKey(), baseUrl);
-        if (nonNull(data)) {
+        final String baseUrl = baseUrls.get(element.getKey().split(":", 2)[1].split("/")[0]);
+        if (nonNull(baseUrl) && nonNull(data)) {
+            final String identifier = toExternalTerm(element.getKey(), baseUrl);
             final Notification notification = new Notification(identifier, data);
             LOGGER.debug("Serializing notification for {}", element.getKey());
             service.serialize(notification).ifPresent(evt -> c.output(of(element.getKey(), evt)));
+        } else {
+            LOGGER.warn("Unable to serialize notification: baseUrl or data values not present for: {}",
+                    element.getKey());
         }
     }
 
@@ -90,6 +92,7 @@ class EventProcessor extends DoFn<KV<String, String>, KV<String, String>> {
         if (term.startsWith(TRELLIS_PREFIX)) {
             return baseUrl + term.substring(TRELLIS_PREFIX.length());
         }
+        LOGGER.warn("Resource IRI is out of domain: {}. No attempt being made to convert it to an HTTP URL", term);
         return term;
     }
 }

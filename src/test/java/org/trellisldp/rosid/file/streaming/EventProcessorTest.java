@@ -139,6 +139,26 @@ public class EventProcessorTest {
 
     @Test
     @Category(NeedsRunner.class)
+    public void testNoDerefTermPipeline() throws Exception {
+
+        final String dataset = "<http://www.example.com/repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferContainment> .";
+        final KV<String, String> kv = KV.of("foo:repository/resource", dataset);
+
+        final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
+
+        final PCollection<KV<String, String>> pCollection = pipeline
+            .apply("Create", Create.of(kv))
+            .apply(ParDo.of(new EventProcessor(dataConfiguration)));
+
+        PAssert.that(pCollection).satisfies(new VerifyEvent("foo:repository/resource"));
+
+        pipeline.run();
+    }
+
+    @Test
+    @Category(NeedsRunner.class)
     public void testOtherTermPipeline() throws Exception {
 
         final String dataset = "<http://www.example.com/repository/resource> " +
@@ -152,7 +172,7 @@ public class EventProcessorTest {
             .apply("Create", Create.of(kv))
             .apply(ParDo.of(new EventProcessor(dataConfiguration)));
 
-        PAssert.that(pCollection).satisfies(new VerifyEvent("http://www.example.com/repository/resource"));
+        PAssert.that(pCollection).empty();
 
         pipeline.run();
     }
