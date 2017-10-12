@@ -35,6 +35,14 @@ import org.junit.experimental.categories.Category;
  */
 public class EventProcessorTest {
 
+    private final static String MEMBER_DATASET = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferMembership> .";
+
+    private final static String CONTAINER_DATASET = "<trellis:repository/resource> " +
+            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
+            "<http://www.w3.org/ns/ldp#PreferContainment> .";
+
     @Rule
     public final transient TestPipeline pipeline = TestPipeline.create();
 
@@ -61,10 +69,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddMemberPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferMembership> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
@@ -81,10 +86,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveMemberPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferMembership> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", MEMBER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
@@ -101,10 +103,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testAddContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
@@ -121,10 +120,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testRemoveContainerPipeline() throws Exception {
 
-        final String dataset = "<trellis:repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("trellis:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("trellis:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
@@ -141,10 +137,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testNoDerefTermPipeline() throws Exception {
 
-        final String dataset = "<http://www.example.com/repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("foo:repository/resource", dataset);
+        final KV<String, String> kv = KV.of("foo:repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
@@ -161,10 +154,7 @@ public class EventProcessorTest {
     @Category(NeedsRunner.class)
     public void testOtherTermPipeline() throws Exception {
 
-        final String dataset = "<http://www.example.com/repository/resource> " +
-            "<http://purl.org/dc/terms/subject> <trellis:repository/resource/member> " +
-            "<http://www.w3.org/ns/ldp#PreferContainment> .";
-        final KV<String, String> kv = KV.of("http://www.example.com/repository/resource", dataset);
+        final KV<String, String> kv = KV.of("http://www.example.com/repository/resource", CONTAINER_DATASET);
 
         final Map<String, String> dataConfiguration = singletonMap("repository", "http://localhost/");
 
