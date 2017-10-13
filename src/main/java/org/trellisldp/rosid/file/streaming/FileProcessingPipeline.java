@@ -158,6 +158,7 @@ public class FileProcessingPipeline {
     /**
      * Load a FileProcessingPipeline
      * @param args the arguments
+     * @return the beam pipeline
      * @throws IOException in the event of an error loading the configuration
      */
     public static Pipeline loadPipeline(final String[] args) throws IOException {
@@ -172,6 +173,7 @@ public class FileProcessingPipeline {
     /**
      * Load the configuration for the pipeline
      * @param filename the configuration filename
+     * @return the configuration properties
      * @throws IOException in the event of an error loading the configuration
      */
     public static Properties loadConfiguration(final String filename) throws IOException {
