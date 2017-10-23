@@ -33,7 +33,7 @@ ext {
     license = 'Apache 2'
 
     /* Dependencies */
-    trellisRosidFileVersion = '0.1.1'
+    trellisRosidFileVersion = '0.1.2'
     trellisEventVersion = '0.1.0'
     beamVersion = '2.1.0'
     slf4jVersion = '1.7.25'
