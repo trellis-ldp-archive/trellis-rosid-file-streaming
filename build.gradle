@@ -99,6 +99,10 @@ gradle.projectsEvaluated {
 
 release {
     tagTemplate = '$name-$version'
+
+    git {
+        signTag = true
+    }
 }
 
 task sourceJar(type: Jar) {
