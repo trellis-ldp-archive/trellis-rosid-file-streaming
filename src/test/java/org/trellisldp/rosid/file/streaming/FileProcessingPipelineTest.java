@@ -46,25 +46,25 @@ public class FileProcessingPipelineTest {
     @Test
     public void testPiplelineLoader() throws Exception {
         final File file = new File(getClass().getResource("/test.config").toURI());
-        final Pipeline pipeline = FileProcessingPipeline.loadPipeline(new String[]{"", file.getPath()});
+        final Pipeline pipeline = FileProcessingPipeline.loadPipeline(new String[]{file.getPath()});
         assertNotNull(pipeline);
     }
 
     @Test(expected = IOException.class)
     public void testPipelineLoaderNoConfig() throws IOException {
-        FileProcessingPipeline.loadPipeline(new String[]{""});
+        FileProcessingPipeline.loadPipeline(new String[]{});
     }
 
     @Test
     public void testPiplelineNoAggregateLoader() throws Exception {
         final File file = new File(getClass().getResource("/testNoAggregate.config").toURI());
-        final Pipeline pipeline = FileProcessingPipeline.loadPipeline(new String[]{"", file.getPath()});
+        final Pipeline pipeline = FileProcessingPipeline.loadPipeline(new String[]{file.getPath()});
         assertNotNull(pipeline);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPiplelineLoaderInvalidConfig() throws Exception {
         final File file = new File(getClass().getResource("/testInvalid.config").toURI());
-        FileProcessingPipeline.loadPipeline(new String[]{"", file.getPath()});
+        FileProcessingPipeline.loadPipeline(new String[]{file.getPath()});
     }
 }

@@ -162,9 +162,9 @@ public class FileProcessingPipeline {
      * @throws IOException in the event of an error loading the configuration
      */
     public static Pipeline loadPipeline(final String[] args) throws IOException {
-        if (args.length >= 2) {
-            LOGGER.debug("Loading Beam Pipeline with {}", args[1]);
-            return new FileProcessingPipeline(loadConfiguration(args[1])).getPipeline();
+        if (args.length >= 1) {
+            LOGGER.debug("Loading Beam Pipeline with {}", args[0]);
+            return new FileProcessingPipeline(loadConfiguration(args[0])).getPipeline();
         }
         LOGGER.error("No configuration file provided");
         throw new IOException("No configuration file provided");

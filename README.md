@@ -25,17 +25,17 @@ where `./config.properties` is a file such as:
 
 ```
 # The Kafka cluster
-kafka.bootstrapServers = host:port
+kafka.bootstrapServers = host1:port,host2:port,host3:port
 
 # The Trellis data/URL locations
-trellis.partition.<partition1-name>.data = /path/to/partition1/data/objects
-trellis.partition.<partition1-name>.baseUrl = http://repo1.example.org/
+trellis.partitions.<partition1-name>.data = /path/to/partition1/data/objects
+trellis.partitions.<partition1-name>.baseUrl = http://repo1.example.org/
 
-trellis.partition.<partition2-name>.data = /path/to/partition2/data/objects
-trellis.partition.<partition2-name>.baseUrl = http://repo2.example.org/
+trellis.partitions.<partition2-name>.data = /path/to/partition2/data/objects
+trellis.partitions.<partition2-name>.baseUrl = http://repo2.example.org/
 
-trellis.partition.<partition3-name>.data = /path/to/partition3/data/objects
-trellis.partition.<partition3-name>.baseUrl = http://repo3.example.org/
+trellis.partitions.<partition3-name>.data = /path/to/partition3/data/objects
+trellis.partitions.<partition3-name>.baseUrl = http://repo3.example.org/
 
 # A time in seconds to aggregate cache writes
 trellis.aggregateSeconds = 4
