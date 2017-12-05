@@ -35,7 +35,7 @@ ext {
     /* Dependencies */
     trellisRosidFileVersion = '0.2.0'
     trellisEventVersion = '0.1.1'
-    beamVersion = '2.2.0'
+    beamVersion = '2.1.0'
     slf4jVersion = '1.7.25'
     logbackVersion = '1.2.3'
 
