@@ -1,9 +1,6 @@
 # trellis-rosid-file-streaming
 
-[![Build Status](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming.png?branch=master)](https://travis-ci.org/trellis-ldp/trellis-rosid-file-streaming)
-[![Build status](https://ci.appveyor.com/api/projects/status/89bpi6s7kmky9ev8?svg=true)](https://ci.appveyor.com/project/acoburn/trellis-rosid-file-streaming)
-[![Coverage Status](https://coveralls.io/repos/github/trellis-ldp/trellis-rosid-file-streaming/badge.svg?branch=master)](https://coveralls.io/github/trellis-ldp/trellis-rosid-file-streaming?branch=master)
-[![Maintainability](https://api.codeclimate.com/v1/badges/7674cf9587392c5abc2a/maintainability)](https://codeclimate.com/github/trellis-ldp/trellis-rosid-file-streaming/maintainability)
+**NOTE**: this project has been migrated into the [Trellis/Rosid repository](https://github.com/trellis-ldp/trellis-rosid).
 
 A <a href="https://beam.apache.org">Beam</a>-based resource processing application suitable for various distributed backends.
 
